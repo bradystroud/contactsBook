@@ -76,7 +76,7 @@ def main(con):
 
     # DISLAYS ALL CONTACTS IN BOOK
     def ls():
-        cursorObj.execute("SELECT * FROM contacts")
+        cursorObj.execute("SELECT fname, lname, phone, email FROM contacts")
         rows = cursorObj.fetchall()
         for row in rows:
             print(row)
@@ -88,18 +88,41 @@ def main(con):
         print()
         cont = input("which contact to update?(enter first name): ")
         detail = input("which detail would you like to change for "+str(cont)+"?: ")
-        new = input("what would you like "+cont+"'s "+detail+" to be?: ")
-        cursorObj.execute("UPDATE contacts SET %s = ? WHERE fname = ? " % (detail), (new, cont))
+        rows = cursorObj.execute("SELECT %s FROM contacts WHERE fname = ?" % (detail), (cont,))
+        for row in rows:
+            old_value = row
+            new = input("what would you like "+cont+"'s "+detail+" to be?(current is:"+str(old_value)+"): ")
+        cursorObj.execute("UPDATE contacts SET %s = ? WHERE fname = ? " % (detail), (new, cont,))
         con.commit()
 
         # CONFIRM UPDATED CONTACT
-        rows = cursorObj.execute("SELECT %s FROM contacts" % (detail))
+        rows = cursorObj.execute("SELECT %s FROM contacts WHERE fname = ?" % (detail), (cont,))
         for row in rows:
-            print("sucessfully updated "+cont+"'s "+detail+" to "+str(row))
+            print("sucessfully updated "+cont+"'s "+detail+" to "+str(row)+" from "+str(old_value))
         input("Press Enter to continue...")
         print()
         main(con)
-        
+
+    #MIGHT DELETE CONTACT??. SOMETIMES IT JUST DOES NOTHING AYE
+    def delete():
+        cont = input("which contact to delete?(enter first name): ")
+        rows = cursorObj.execute("SELECT fname, lname FROM contacts WHERE fname = ?", (cont,))
+        for row in rows:
+            cont_to_del = row
+            confirm = input("Are you sure you want to delete this contact"+str(cont_to_del)+"? (you cannot recover it ever)y/n: ")
+            if confirm == "y":
+                cursorObj.execute("DELETE FROM contacts WHERE fname = ? ", (cont,))
+                print("Ok, "+str(cont_to_del)+" has been yeeted into the bin")
+                input("Press Enter to continue...")
+                print()
+                main(con)
+            else:
+                print("Ok")
+                input("Press Enter to continue...")
+                print()
+                main(con)
+
+
     def norm_cmd():
         if cmd == "a":
             add_contact(con)
@@ -107,8 +130,8 @@ def main(con):
         #     search()
         elif cmd == "u":
             update()
-        # elif cmd == "d":
-        #     delete()
+        elif cmd == "d":
+            delete()
         elif cmd == "ls":
             ls()
         else:
