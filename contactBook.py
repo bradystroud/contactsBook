@@ -1,12 +1,13 @@
 #
 # COMMAND LINE CONTACT BOOK
 # MADE BY 
+# BRADY STROUD
 # 
 # CONTRIBUTERS:
 # BROOK JEYNES, 
 #
 # APPLICATION DESCRIPTION:
-#
+# Command line contacts book
 #
 #
 #
@@ -38,35 +39,39 @@ def sql_table(con):
 def main(con):
     # GET CONTACT VALUES AND INSERT THEM INTO DATABASE
     def add_contact(con):
-        sql_insert = """
-        INSERT INTO contacts (fname, lname, phone, email) 
-        VALUES (?,?,?,?)
-        """
-
+        cursorObj = con.cursor()
         fname = input("enter first name: ")
         lname = input("enter last name: ")
         phone = input("enter number: ")
         email = input("enter email: ")
-
-        cursorObj.execute(sql_insert, (fname, lname, phone, email))
+        contact = (fname, lname, phone, email)
+        sql_insert = """
+            INSERT INTO contacts(fname, lname, phone, email) 
+            VALUES (?,?,?,?)"""
+        cursorObj = con.cursor()
+        cursorObj.execute(sql_insert, contact)
         con.commit()
 
         # CONFIRMATION MESSAGE
         print("contact", fname, lname, "added")
 
         # SHOWS ALL CONTACTS ADDED // COMMENTED OUT BECAUSE IT THE ADDITION OF IT MADE NO SENSE TO ME, BROOK .J
-        #cursorObj.execute("SELECT * FROM contacts")
-        #rows = cursorObj.fetchall()
-        #for row in rows:
-        #    print(row)
+        # DEAR BROOK, THIS WAS HERE SO WHEN I WAS TESTING THE PROGRAM, I COULD IMMEDIATELY SEE IF THE QUERY WORKED. STILL, I SHOULD HAVE ADDED DOCUMENTATION FOR CONTRIBUTORS. MY BAD XOXO
+        cursorObj.execute("SELECT * FROM contacts")
+        rows = cursorObj.fetchall()
+        for row in rows:
+           print(row)
 
         # GIVES USER CHOICE TO ADD ANOTHER CONTACT
         userChoice = input("add another?(y/n): ")
+        print()
         if userChoice == "y":
             add_contact(con)
             con.commit()
         else:
             con.commit()
+            main(con)
+
 
     # DISLAYS ALL CONTACTS IN BOOK
     def ls():
@@ -76,22 +81,26 @@ def main(con):
             print(row)
         input("Press Enter to continue...")
         main(con)
-
+    # UPDATES CONTACTS DETAILS 
     def update():
-        upcon = int(input("which contact to update?(enter first name): "))
-        cursorObj.execute("SELECT fname, lname FROM contacts WHERE cID = ?;"), (upcon)
-        rows = cursorObj.fetchall()
-        for row in rows:
-            deta = input("which detail would you like to change for "+str(row)+"?: ")
-        cursorObj.execute("UPDATE")   
+        cursorObj = con.cursor()
+        upcon = input("which contact to update?(enter first name): ")
+        deta = input("which detail would you like to change for "+str(upcon)+"?: ")
+        new = input("what would you like upcon "+deta+" to be?: ")
+        update = """UPDATE contacts
+            SET ? = ?
+            WHERE fname = "?"
+            """
+
+        cursorObj.execute(update, deta, new, upcon)   
 
     def norm_cmd():
         if cmd == "a":
             add_contact(con)
         # elif cmd == "s":
         #     search()
-        elif cmd == "u":
-            update()
+        # elif cmd == "u":
+        #     update()
         # elif cmd == "d":
         #     delete()
         elif cmd == "ls":
@@ -109,8 +118,9 @@ def main(con):
 # GIVES USER A RUNDOWN OF HOW TO USE THE COMMAND LINE APPLICATION
 def help():
     print("""
-    Type 'a' for instructions
-    Type 's' to search for a contact
+    Type 'help' for instructions
+    Type 'a' to add a new contact
+    Type 'u' to update a contact
     Type 'ls' to list all contacts
     Type 'd' to delete a contact
     Press Enter to continue...\n
