@@ -39,6 +39,7 @@ def sql_table(con):
 def main(con):
     # GET CONTACT VALUES AND INSERT THEM INTO DATABASE
     def add_contact(con):
+        sql_table(con)
         cursorObj = con.cursor()
         fname = input("enter first name: ")
         lname = input("enter last name: ")
@@ -81,26 +82,31 @@ def main(con):
             print(row)
         input("Press Enter to continue...")
         main(con)
-    # UPDATES CONTACTS DETAILS 
+    # UPDATES CONTACTS DETAILS
     def update():
         cursorObj = con.cursor()
-        upcon = input("which contact to update?(enter first name): ")
-        deta = input("which detail would you like to change for "+str(upcon)+"?: ")
-        new = input("what would you like upcon "+deta+" to be?: ")
-        update = """UPDATE contacts
-            SET ? = ?
-            WHERE fname = "?"
-            """
+        print()
+        cont = input("which contact to update?(enter first name): ")
+        detail = input("which detail would you like to change for "+str(cont)+"?: ")
+        new = input("what would you like "+cont+"'s "+detail+" to be?: ")
+        cursorObj.execute("UPDATE contacts SET %s = ? WHERE fname = ? " % (detail), (new, cont))
+        con.commit()
 
-        cursorObj.execute(update, deta, new, upcon)   
-
+        # CONFIRM UPDATED CONTACT
+        rows = cursorObj.execute("SELECT %s FROM contacts" % (detail))
+        for row in rows:
+            print("sucessfully updated "+cont+"'s "+detail+" to "+str(row))
+        input("Press Enter to continue...")
+        print()
+        main(con)
+        
     def norm_cmd():
         if cmd == "a":
             add_contact(con)
         # elif cmd == "s":
         #     search()
-        # elif cmd == "u":
-        #     update()
+        elif cmd == "u":
+            update()
         # elif cmd == "d":
         #     delete()
         elif cmd == "ls":
